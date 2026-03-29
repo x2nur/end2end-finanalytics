@@ -5,6 +5,12 @@ ARG ENTRYPNT=${HOME}/.local/bin/entrypoint.sh
 
 WORKDIR ${HOME}
 
+USER root
+
+# install C compiler to build parsers for neovim treesitter
+RUN dnf groupinstall -y "Development Tools" && \
+    dnf clean all 
+
 # test
 # COPY nvim-linux-x86_64.tar.gz .
 
@@ -29,7 +35,7 @@ RUN pip3.11 --no-cache-dir install --user \
 	curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz && \
 	mkdir -p ${HOME}/.local/opt && \
 	tar -C ${HOME}/.local/opt -xzf nvim-linux-x86_64.tar.gz && \
-	rm nvim-linux-x86_64.tar.gz 
+	rm nvim-linux-x86_64.tar.gz
 
 ENV PATH=${HOME}/.local/bin:$HOME/.local/opt/nvim-linux-x86_64/bin:$HOME/.local/opt/lua-server/bin:$PATH
 
