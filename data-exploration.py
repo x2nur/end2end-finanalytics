@@ -41,7 +41,6 @@ jobname: str = args.get('JOB_NAME', 'test')
 job.init(jobname, args)
 
 
-
 # tx ======
 df_tx: DataFrame = (
     spark 
@@ -49,6 +48,7 @@ df_tx: DataFrame = (
     .options(header='true', inferSchema='true')
     .csv('file:///home/hadoop/workspace/data/transactions_data.csv')
 )
+
 
 # show sample of data
 df_tx.limit(5).show()
@@ -78,6 +78,7 @@ df_tx = (
     )
 )
 
+
 # check merchant_state
 df_tx_empty_state = df_tx.where(F.col('merchant_state').isNull())
 df_tx_empty_state.select('merchant_city').distinct().show()
@@ -95,6 +96,7 @@ df_tx = (
 df_tx.select(F.explode(F.split('errors', ','))).distinct().show()
 # fix
 df_tx = df_tx.fillna('NO ERROR', subset=['errors'])
+
 
 # fix zip 
 df_tx: DataFrame = df_tx.withColumn('zip', F.col('zip').cast(T.StringType()))
