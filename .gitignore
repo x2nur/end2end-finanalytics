@@ -1,3 +1,6 @@
+# project temp files 
+data/
+
 # secrets 
 .env
 .env.*
