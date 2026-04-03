@@ -1,2 +1,17 @@
+# secrets 
 .env
+.env.*
+
+# jupyter 
 .ipynb_checkpoints
+
+# docker 
+docker-compose.override.yml
+.docker/
+
+# logs
+*.log
+
+# system files 
+.DS_Store
+Thumbs.db
