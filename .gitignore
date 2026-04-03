@@ -6,6 +6,17 @@ output/
 .env
 .env.*
 
+# virtual env 
+.venv/
+venv/
+
+# python project 
+bin/
+lib/
+__pycache__/
+*.py[cod]
+*$py.class
+
 # jupyter 
 .ipynb_checkpoints
 
