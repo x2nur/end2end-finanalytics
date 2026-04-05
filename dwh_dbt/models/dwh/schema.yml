@@ -1,0 +1,11 @@
+models:
+  - name: dim_users
+    description: Transactions' users
+    config:
+      tags: ["dim"]
+  - name: dim_cards
+    description: Users' cards 
+    config:
+      tags: ["dim"]
+  - name: dim_calendar
+    description: Calendar dimension table
