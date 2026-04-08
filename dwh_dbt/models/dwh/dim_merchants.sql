@@ -19,8 +19,3 @@ select
 from merchant
 where row_num = 1
 
-
-
--- dimenstions:
--- - transaction type 
--- - error type 
