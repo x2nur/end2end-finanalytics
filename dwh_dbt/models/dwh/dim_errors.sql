@@ -2,7 +2,7 @@
 
 {{
 	config(
-		meterialized='incremental',
+		materialized='incremental',
 		incremental_strategy='merge',
 		unique_key='error_id'
 	)
@@ -12,7 +12,9 @@ with
 errors0 as (
 	select split_to_array(errors, ',') as errors
 	from {{ source('staging', 'transactions') }}
-	where event_date >= timestamp '{{ var("interval_start") }}'
+	{% if is_incremental() -%}
+	where event_date >= timestamp '{{ var("interval_start") }}' -- add interval_end
+	{%- endif %}
 	group by 1
 ), 
 errors1 as (
