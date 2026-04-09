@@ -16,7 +16,9 @@ tx as (
 		id 
 		, split_to_array(errors, ',') as arr_errors 
 	from {{ source('staging', 'transactions') }}
-	where event_date >= timestamp '{{ var("interval_start") }}'
+	{% if is_incremental() -%}
+	where event_date >= timestamp '{{ var("interval_start") }}' -- and interval_end
+	{%- endif %}
 )
 , tx_norm as (
 	select 
