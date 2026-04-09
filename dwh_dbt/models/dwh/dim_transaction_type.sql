@@ -6,7 +6,7 @@ with tx_types as (
 	group by 1
 )
 select 
-	{{ dbt_utils.generate_surrogate_key(['transaction_type']) }} as id
+	{{ dbt_utils.generate_surrogate_key(['transaction_type']) }} as transaction_type_id -- PK
 	, transaction_type
 from tx_types 
 

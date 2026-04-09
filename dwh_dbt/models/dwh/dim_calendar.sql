@@ -10,7 +10,7 @@ date_range as (
 	}}
 )
 select 
-	date_day::date as date_key
+	date_day::date as date_id -- PK
 	, extract(year from date_day) as year
 	, extract(quarter from date_day) as quarter
 	, extract(month from date_day) as month

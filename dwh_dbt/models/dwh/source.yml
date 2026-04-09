@@ -4,8 +4,7 @@ sources:
     description: Cleansed and standardized staging layer 
     schema: stage 
     tables:
-      - name: users # need to change to stg_db__users
-        description: Cleansed users of transactions 
+      - name: users # need to change to stg_payment__users
       - name: cards 
       - name: mcc_codes
       - name: transactions

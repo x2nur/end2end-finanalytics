@@ -1,6 +1,6 @@
 
 select
-	id
+	id as client_id -- PK
 	, current_age
 	, retirement_age
 	, birth_year

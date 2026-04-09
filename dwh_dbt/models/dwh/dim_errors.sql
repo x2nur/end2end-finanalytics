@@ -12,6 +12,6 @@ errors1 as (
 	group by 1
 )
 select 
-	{{ dbt_utils.generate_surrogate_key(['error']) }} as id 
+	{{ dbt_utils.generate_surrogate_key(['error']) }} as error_id 
 	, error 
 from errors1 

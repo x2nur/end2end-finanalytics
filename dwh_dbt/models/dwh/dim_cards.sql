@@ -1,6 +1,6 @@
 
 select 
-	id
+	id as card_id -- PK
 	,client_id
 	,card_brand
 	,card_type
