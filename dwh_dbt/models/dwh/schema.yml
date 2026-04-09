@@ -1,11 +1,33 @@
 models:
   - name: dim_users
-    description: Transactions' users
+    description: Clients' transactions
     config:
       tags: ["dim"]
   - name: dim_cards
-    description: Users' cards 
+    description: Clients' cards 
     config:
       tags: ["dim"]
   - name: dim_calendar
     description: Calendar dimension table
+    config:
+      tags: ["dim"]
+  - name: dim_errors
+    description: Transactions' errors 
+    config:
+      tags: ["dim"]
+  - name: dim_merchants 
+    description: Transactions' merchants 
+    config:
+      tags: ["dim"]
+  - name: dim_transaction_type 
+    description: Type of transaction 
+    config:
+      tags: ["dim"]
+  - name: br_transaction_error
+    description: Bridge between transaction and error type 
+    config:
+      tags: ["dim"]
+  - name: fct_transactions 
+    description: Clients' transactions 
+    config:
+      tags: ["fact"]
