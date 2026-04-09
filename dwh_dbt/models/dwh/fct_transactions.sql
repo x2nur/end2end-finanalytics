@@ -34,8 +34,8 @@ select
 	, tx.amount 
 	, tx_types.transaction_type_id
 from tx 
-left join tx_types on using (transaction_type)
--- left join cards on using (card_id)
--- left join clients on using (client_id)
+left join tx_types using (transaction_type)
+-- left join cards using (card_id)
+-- left join clients using (client_id)
 -- left join merchants using (merchant_id)
 
