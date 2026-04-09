@@ -1,5 +1,13 @@
 -- Trnsactions
 
+{{
+	config(
+		materialized='incremental',
+		incremental_strategy='merge',
+		unique_key='transaction_id'
+	)
+}}
+
 with 
 tx as (
 	select 
@@ -11,6 +19,7 @@ tx as (
 		, trim(use_chip) as transaction_type 
 		, merchant_id 
 	from {{ source('staging', 'transactions' )}}
+	where event_date >= timestamp '{{ var("interval_start") }}'
 )
 , cards as ( -- dag dependency
 	select * from {{ ref('dim_cards') }}

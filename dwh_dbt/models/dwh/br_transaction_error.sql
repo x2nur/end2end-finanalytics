@@ -1,12 +1,22 @@
 
 -- Bridge between fct_transactions and dim_errors
 
+{{
+	config(
+		materialized='incremental',
+		incremental_strategy='merge',
+		unique_key=['transaction_id', 'error_id']
+	)
+}}
+
+
 with 
 tx as (
 	select 
 		id 
 		, split_to_array(errors, ',') as arr_errors 
 	from {{ source('staging', 'transactions') }}
+	where event_date >= timestamp '{{ var("interval_start") }}'
 )
 , tx_norm as (
 	select 

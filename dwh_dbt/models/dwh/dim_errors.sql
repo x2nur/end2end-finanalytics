@@ -1,13 +1,22 @@
 -- Transaction error dimension
 
+{{
+	config(
+		meterialized='incremental',
+		incremental_strategy='merge',
+		unique_key='error_id'
+	)
+}}
+
 with 
 errors0 as (
 	select split_to_array(errors, ',') as errors
 	from {{ source('staging', 'transactions') }}
+	where event_date >= timestamp '{{ var("interval_start") }}'
 	group by 1
 ), 
 errors1 as (
-	select trim(cast(error as varchar) ) as error
+	select trim(error::varchar) as error
 	from errors0 as tab, tab.errors as error
 	group by 1
 )
