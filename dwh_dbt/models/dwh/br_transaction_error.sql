@@ -10,9 +10,9 @@ tx as (
 )
 , tx_norm as (
 	select 
-		tx.id 
-		, trim(errors.error_name) as error_name
-	from tx, unnest(tx.arr_errors) as errors(error_name) 
+		tx_.id 
+		, trim(errors.error_name::varchar) as error_name
+	from tx as tx_, unnest(tx_.arr_errors) as errors(error_name) 
 )
 , errors as (
 	select 
@@ -25,7 +25,7 @@ tx as (
 	from {{ ref('fct_transactions') }}
 )
 select 
-	tx.id as transaction_id 
+	tx_norm.id as transaction_id 
 	, errors.error_id
 from tx_norm inner join errors using (error_name)
 
