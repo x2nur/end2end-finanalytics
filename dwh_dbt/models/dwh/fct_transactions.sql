@@ -19,7 +19,9 @@ tx as (
 		, trim(use_chip) as transaction_type 
 		, merchant_id 
 	from {{ source('staging', 'transactions' )}}
-	where event_date >= timestamp '{{ var("interval_start") }}'
+	{% if is_incremental() -%}
+	where event_date >= timestamp '{{ var("interval_start") }}' -- and interval_end
+	{%- endif %}
 )
 , cards as ( -- dag dependency
 	select * from {{ ref('dim_cards') }}
