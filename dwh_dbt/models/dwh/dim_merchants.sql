@@ -6,7 +6,7 @@ merchant as (
 		, merchant_city
 		, merchant_state
 		, zip
-		, mcc as merchant_code
+		, mcc 
 		, row_number() over (partition by merchant_id order by event_date) as row_num
 	from {{ source('staging', 'transactions') }}
 )
