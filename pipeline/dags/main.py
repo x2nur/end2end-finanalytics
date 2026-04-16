@@ -39,7 +39,6 @@ with DAG(
             '--src_data_s3': raw_data_s3 + '/transactions/{{ data_interval_start | ds }}',
             '--dest_data_s3': dest_data_s3 + '/transactions-step1/{{ data_interval_start | ds }}',
             '--missing_zipcodes_s3': dest_data_s3 + '/transactions-step1-missing-zipcodes/{{ data_interval_start | ds }}',
-            'test': 'test:{{logical_date}}'
         }
     )
 
@@ -55,5 +54,18 @@ with DAG(
     )
 
 
-    start >> tx_job_step1 >> resolve_missing_zipcodes_lambda
+    tx_job_step2 = GlueJobOperator(
+        task_id='cleansing_tx_step2',
+        aws_conn_id='finanalytics_aws',
+        region_name='eu-north-1',
+        job_name='Transactions-step2-script',
+        wait_for_completion=True,
+        script_args={
+            '--src_tx_data_s3': dest_data_s3 + '/transactions-step1/{{ data_interval_start | ds }}',
+            '--dest_tx_data_s3': dest_data_s3 + '/transactions-step2/{{ data_interval_start | ds }}',
+            '--src_zipcodes_data_s3': dest_data_s3 + '/transactions-step1-missing-zipcodes-result/{{ data_interval_start | ds }}',
+        }
+    )
+
+    start >> tx_job_step1 >> resolve_missing_zipcodes_lambda >> tx_job_step2
 
