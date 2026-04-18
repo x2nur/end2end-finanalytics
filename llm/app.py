@@ -3,6 +3,7 @@ import os
 import json
 import re
 import csv
+from pprint import pprint
 from io import BytesIO, TextIOWrapper
 from pathlib import Path
 import boto3
@@ -11,6 +12,7 @@ from langchain.messages import SystemMessage, AIMessage, HumanMessage, ToolMessa
 from langchain_core.messages.base import BaseMessage
 from langchain_core.tools.base import BaseTool
 from langchain_openai import ChatOpenAI
+from langchain_community.tools import DuckDuckGoSearchRun
 from pydantic import SecretStr
 from dotenv import load_dotenv
 
@@ -27,6 +29,7 @@ def get_s3_parts(s3url):
 
 
 def put_empty_csv_result(bucket: str, key: str) -> None:
+    print('=====: put empty csv result')
     with (BytesIO() as buf, TextIOWrapper(buf, encoding='utf-8', newline='') as f):
         writer = csv.DictWriter(f, fieldnames=['city', 'country', 'zip'])
         writer.writeheader()
@@ -58,6 +61,10 @@ def handler(event, context):
     last_csv_key = sorted(csv_keys)[-1]
     csv_obj = s3.get_object(Bucket=buck, Key=last_csv_key)['Body'].read().decode('utf-8')
 
+    print('=====: got *missing zipcodes* csv obj')
+    print(csv_obj)
+    print('=====: end of file')
+
 
     # target result csv file
     buck, key = get_s3_parts(s3_output_folder)
@@ -66,6 +73,7 @@ def handler(event, context):
     # if empty csv file / only header
     # produce empty result
     if len(csv_obj.splitlines()) == 1: 
+        print('=====: missing zipcodes has only header')
         put_empty_csv_result(buck, key)
         return
 
@@ -80,9 +88,8 @@ def handler(event, context):
         reasoning={ "effort": "low" },
     )
 
-    # tools: dict[str, BaseTool] = { }
 
-    ss_websearch = { "type": "web_search" }
+    # tools: dict[str, BaseTool] = { }
 
     system_instructions = SystemMessage(re.sub(r'\s+', ' ', r"""
     You are a data engineer. Be concise and accurate.
@@ -94,7 +101,7 @@ def handler(event, context):
 
     agent = create_agent(
         model,
-        tools=[ss_websearch],
+        tools=[DuckDuckGoSearchRun()],
         system_prompt=system_instructions
     )
 
@@ -109,22 +116,28 @@ def handler(event, context):
     Return only raw CSV content. Follow RFC 4180 standard.
     """).strip()
 
+    query = f"{query}\n{csv_obj}"
+
 
     h_msg = HumanMessage(
         content_blocks=[
             { "type": "text", "text": query },
-            { "type": "text", "text": csv_obj }
+            # { "type": "text", "text": csv_obj }
         ]
     )
-
 
     resp = agent.invoke({"messages": [h_msg]})
 
     result = resp['messages'][-1].content
 
+    print('=====: dump start')
+    print(pprint(result))
+    print('=====: dump end')
+
     txt = next((item for item in result if item['type'] == 'text'), None)
     
     if txt is not None: 
+        print('=====: Got answer from LLM')
         s3.put_object(Bucket=buck, Key=key, Body=txt['text'].encode('utf-8') )
     else:
         # empty csv 

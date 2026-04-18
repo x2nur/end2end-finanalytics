@@ -4,6 +4,7 @@ version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = [
     "boto3>=1.42.89",
+    "ddgs>=9.13.1",
     "langchain>=1.2.12",
     "langchain-community>=0.4.1",
     "langchain-openai>=1.1.11",
