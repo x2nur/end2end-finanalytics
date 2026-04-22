@@ -37,7 +37,7 @@ with DAG(
     # todo: extract from RDS to a specific s3 path with data_interval_start name
 
     tx_job_step1 = GlueJobOperator(
-        task_id='cleansing_tx_step1',
+        task_id='tx_clean_step1',
         aws_conn_id='finanalytics_aws',
         region_name='eu-north-1',
         job_name='Transactions-script',
@@ -50,7 +50,7 @@ with DAG(
     )
 
     resolve_missing_zipcodes_lambda = LambdaInvokeFunctionOperator(
-        task_id='resolve_missing_zipcodes_lambda',
+        task_id='tx_resolve_null_zipcodes',
         aws_conn_id='finanalytics_aws',
         region_name='eu-north-1',
         function_name='resolve_missing_zipcodes',
@@ -62,7 +62,7 @@ with DAG(
 
 
     tx_job_step2 = GlueJobOperator(
-        task_id='cleansing_tx_step2',
+        task_id='tx_clean_step2',
         aws_conn_id='finanalytics_aws',
         region_name='eu-north-1',
         job_name='Transactions-step2-script',
@@ -78,7 +78,7 @@ with DAG(
     # todo: overwrite current tx data in staging instead append
 
     copy_tx_to_redshift = RedshiftDataOperator(
-        task_id='copy_tx_to_redshift_staging',
+        task_id='tx_to_staging',
         aws_conn_id='finanalytics_aws',
         region_name='eu-north-1',
         workgroup_name='default-workgroup',
@@ -95,7 +95,7 @@ with DAG(
 
     
     user_job = GlueJobOperator(
-        task_id='cleansing_user',
+        task_id='users_clean',
         aws_conn_id='finanalytics_aws',
         region_name='eu-north-1',
         job_name='User-script',
@@ -110,7 +110,7 @@ with DAG(
     # todo: delete + insert for users table
 
     copy_users_to_redshift = RedshiftDataOperator(
-        task_id='copy_users_to_redshift_staging',
+        task_id='users_to_staging',
         aws_conn_id='finanalytics_aws',
         region_name='eu-north-1',
         workgroup_name='default-workgroup',
@@ -128,7 +128,7 @@ with DAG(
     
 
     cards_job = GlueJobOperator(
-        task_id='cleansing_cards',
+        task_id='cards_clean',
         aws_conn_id='finanalytics_aws',
         region_name='eu-north-1',
         job_name='Cards-script',
@@ -141,7 +141,7 @@ with DAG(
 
 
     copy_cards_to_redshift = RedshiftDataOperator(
-        task_id='copy_cards_to_redshift_staging',
+        task_id='cards_to_staging',
         aws_conn_id='finanalytics_aws',
         region_name='eu-north-1',
         workgroup_name='default-workgroup',
@@ -192,7 +192,7 @@ with DAG(
 
 
     clean_mcc_codes_glue_job = GlueJobOperator(
-        task_id='cleansing_mcc_codes',
+        task_id='mcc_codes_clean',
         aws_conn_id='finanalytics_aws',
         region_name='eu-north-1',
         job_name='MccCodes-script',
@@ -205,7 +205,7 @@ with DAG(
 
 
     copy_mcc_codes_to_redshift = RedshiftDataOperator(
-        task_id='copy_mcc_codes_to_redshift_staging',
+        task_id='mcc_codes_to_staging',
         aws_conn_id='finanalytics_aws',
         region_name='eu-north-1',
         workgroup_name='default-workgroup',
@@ -223,7 +223,8 @@ with DAG(
     con: Connection = Connection.get('dwh_redshift')
 
     dbt_run = BashOperator(
-        task_id='dbt_run_fill_dwh',
+        task_id='dbt_run_dwh',
+        trigger_rule='all_success',
         env={ 
             'DBT_PROJECT_DIR': '{{ task.dag.folder }}/finanalytics',
             'DBT_PROFILES_DIR': '{{ task.dag.folder }}/finanalytics',
@@ -239,7 +240,7 @@ with DAG(
 
 
     dbt_retry = BashOperator(
-        task_id='dbt_retry_fill_dwh',
+        task_id='dbt_retry_dwh',
         trigger_rule='all_failed',
         env={ 
             'DBT_PROJECT_DIR': '{{ task.dag.folder }}/finanalytics',
@@ -261,15 +262,18 @@ with DAG(
     end = EmptyOperator(task_id='end')
 
 
-    start >> tx_job_step1 >> resolve_missing_zipcodes_lambda >> tx_job_step2 >> copy_tx_to_redshift
 
-    copy_tx_to_redshift >> user_job >> copy_users_to_redshift
+    tx_job_step1 >> resolve_missing_zipcodes_lambda >> tx_job_step2 >> copy_tx_to_redshift
 
-    copy_users_to_redshift >> cards_job >> copy_cards_to_redshift
+    user_job >> copy_users_to_redshift
 
-    copy_cards_to_redshift >> prepare_mcc_codes >> clean_mcc_codes_glue_job >> copy_mcc_codes_to_redshift
+    cards_job >> copy_cards_to_redshift
 
-    copy_mcc_codes_to_redshift >> dbt_run >> dbt_retry
+    prepare_mcc_codes >> clean_mcc_codes_glue_job >> copy_mcc_codes_to_redshift
+
+    start >> [ tx_job_step1, user_job, cards_job, prepare_mcc_codes ] 
+
+    [copy_tx_to_redshift, copy_users_to_redshift, copy_cards_to_redshift, copy_mcc_codes_to_redshift] >> dbt_run >> dbt_retry
 
     [dbt_run, dbt_retry] >> dbt_done >> end
 
