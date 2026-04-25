@@ -75,21 +75,28 @@ with DAG(
     )
 
 
-    # todo: overwrite current tx data in staging instead append
-
     copy_tx_to_redshift = RedshiftDataOperator(
         task_id='tx_to_staging',
         aws_conn_id='finanalytics_aws',
         region_name='eu-north-1',
         workgroup_name='default-workgroup',
         database='dev',
-        sql=f"""
-            COPY "dev"."stage"."transactions"
+        sql=[
+            """
+            DELETE FROM "dev"."stage"."transactions"
+            WHERE meta_load_date = '{ data_interval_start | ds }';
+            """,
+            f"""
+            COPY "dev"."stage"."transactions" (
+                id, event_date, client_id, 
+                card_id, amount, use_chip, 
+                merchant_id, merchant_city, merchant_state, 
+                zip, mcc, errors)
             FROM '{dest_data_s3}/transactions-step2/{{{{ data_interval_start | ds }}}}'
             iam_role default 
             region 'eu-north-1'
-            parquet
-        """,
+            parquet;
+        """],
         wait_for_completion=True
     )
 
@@ -107,21 +114,28 @@ with DAG(
     )
 
 
-    # todo: delete + insert for users table
-
     copy_users_to_redshift = RedshiftDataOperator(
         task_id='users_to_staging',
         aws_conn_id='finanalytics_aws',
         region_name='eu-north-1',
         workgroup_name='default-workgroup',
         database='dev',
-        sql=f"""
-            COPY "dev"."stage"."users"
+        sql=[
+            """
+            DELETE "dev"."stage"."users"
+            WHERE meta_load_date = '{ data_interval_start | ds }';
+            """,
+            f"""
+            COPY "dev"."stage"."users" (
+                id, current_age, retirement_age, birth_year, 
+                birth_month, gender, address, latitude, 
+                longitude, per_capita_income, yearly_income, 
+                total_debt, credit_score, num_credit_cards, is_retired )
             FROM '{dest_data_s3}/users/{{{{ data_interval_start | ds }}}}'
             iam_role default 
             region 'eu-north-1'
-            parquet
-        """,
+            parquet;
+        """],
         wait_for_completion=True
     )
 
@@ -146,13 +160,22 @@ with DAG(
         region_name='eu-north-1',
         workgroup_name='default-workgroup',
         database='dev',
-        sql=f"""
-            COPY "dev"."stage"."cards"
+        sql=[
+            """
+            DELETE "dev"."stage"."cards"
+            WHERE meta_load_date = '{ data_interval_start | ds }';
+            """,
+            f"""
+            COPY "dev"."stage"."cards" (
+                id, client_id, card_brand, card_type, card_number, 
+                cvv, has_chip, num_cards_issued, credit_limit, 
+                year_pin_last_changed, card_on_dark_web, expire_year,
+                expire_month, acct_open_year, acct_open_month )
             FROM '{dest_data_s3}/cards/{{{{ data_interval_start | ds }}}}'
             iam_role default 
             region 'eu-north-1'
             parquet
-        """,
+        """],
         wait_for_completion=True
     )
 
@@ -210,13 +233,18 @@ with DAG(
         region_name='eu-north-1',
         workgroup_name='default-workgroup',
         database='dev',
-        sql=f"""
-            COPY "dev"."stage"."mcc_codes"
+        sql=[
+            """
+            DELETE FROM "dev"."stage"."mcc_codes"
+            WHERE meta_load_date = '{ data_interval_start | ds }'
+            """,
+            f"""
+            COPY "dev"."stage"."mcc_codes" (mcc, description)
             FROM '{dest_data_s3}/mcc-codes-step2/{{{{ data_interval_start | ds }}}}'
             iam_role default 
             region 'eu-north-1'
             parquet
-        """,
+        """],
         wait_for_completion=True
     )
 
