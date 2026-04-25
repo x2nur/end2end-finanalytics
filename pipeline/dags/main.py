@@ -174,7 +174,7 @@ with DAG(
             FROM '{dest_data_s3}/cards/{{{{ data_interval_start | ds }}}}'
             iam_role default 
             region 'eu-north-1'
-            parquet
+            parquet;
         """],
         wait_for_completion=True
     )
@@ -236,14 +236,14 @@ with DAG(
         sql=[
             """
             DELETE FROM "dev"."stage"."mcc_codes"
-            WHERE meta_load_date = '{ data_interval_start | ds }'
+            WHERE meta_load_date = '{ data_interval_start | ds }';
             """,
             f"""
             COPY "dev"."stage"."mcc_codes" (mcc, description)
             FROM '{dest_data_s3}/mcc-codes-step2/{{{{ data_interval_start | ds }}}}'
             iam_role default 
             region 'eu-north-1'
-            parquet
+            parquet;
         """],
         wait_for_completion=True
     )
