@@ -22,8 +22,8 @@ Development tools used to create the data pipeline
 - `PySpark` for data exploration 
 - `neovim` for local data exploration development in the Glue docker environment, can be used to prepare a pure PySpark ETL process instead of Glue Visual ETL
 - `airflow` is used to orchestrate the data flow
-- `langchain` is an agent based extraction of incomplete data 
-- `boto3` AWS python SDK
+- `langchain` is used for an agent based extraction of incomplete data 
+- `boto3` AWS python SDK to work with managed services
 - `cdk` for deployment
 
 ## Setup
@@ -47,14 +47,13 @@ Install dependencies
 uv sync
 ```
 
-Init cdk if cdk hasn't been used before
+Init cdk if cdk hasn't been used before. 
 CDK bootstrap requires **AdministratorAccess** rights (managed policy)
 ```sh
 cdk --profile YOUR_AWS_PROFILE bootstrap 
 ```
 
 ### Deployment 
-Deploy
 ```sh
 cdk --profile YOUR_AWS_PROFILE deploy
 
