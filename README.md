@@ -47,6 +47,11 @@ Install dependencies
 uv sync
 ```
 
+Activate the virtual environment 
+```sh 
+source .venv/bin/activate 
+```
+
 Init cdk if cdk hasn't been used before. 
 CDK bootstrap requires **AdministratorAccess** rights (managed policy)
 ```sh
