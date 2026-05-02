@@ -6,6 +6,10 @@ from stack import FinanalyticsStack
 
 app = App()
 
+# prod = aws_cdk.Environment(account="", region="")
+# dev = aws_cdk.Environment(account="", region="")
+
+# pass env var to env parameter of Stack
 FinanalyticsStack(app, "FinAnalyticsStack")
 
 app.synth()
