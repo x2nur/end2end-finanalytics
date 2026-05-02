@@ -103,4 +103,20 @@ class FinanalyticsStack(Stack):
         )
 
 
+        # ===== Glue Job: transactions step2 =====
+
+        transactions_step2_glue_job = glue.PySparkEtlJob(
+            self, 
+            "TransactionsStep2ETLJob",
+            job_name="transactions-step2-etl",
+            glue_version=glue.GlueVersion.V5_1,
+            role=glue_role, #type: ignore
+            script=glue.Code.from_bucket(buck, 'etl-scripts/transactions-step2-etl.py'),
+            number_of_workers=2, 
+            worker_type=glue.WorkerType.G_1X,
+            max_concurrent_runs=1,
+            timeout=Duration.minutes(30),
+        )
+
+
 
