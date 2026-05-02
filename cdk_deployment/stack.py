@@ -1,6 +1,6 @@
 import aws_cdk
 from aws_cdk import Stack, Duration, aws_lambda, aws_ecr_assets, aws_s3
-from aws_cdk import aws_s3_deployment
+from aws_cdk import aws_s3_deployment, aws_iam
 from aws_cdk.aws_s3_deployment import Source
 from constructs import Construct
 
@@ -61,5 +61,16 @@ class FinanalyticsStack(Stack):
         )
 
 
-        
+        # ===== IAM Role for Glue =====
+        glue_role = aws_iam.Role(
+            self, "GlueServiceRole",
+            assumed_by=aws_iam.ServicePrincipal("glue.amazonaws.com"), #type:ignore
+            managed_policies=[
+                aws_iam.ManagedPolicy.from_aws_managed_policy_name("AWSGlueServiceRole")
+            ]
+        )
+        buck.grant_read_write(glue_role)
+
+
+
 
