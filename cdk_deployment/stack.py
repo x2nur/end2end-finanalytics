@@ -119,4 +119,20 @@ class FinanalyticsStack(Stack):
         )
 
 
+        # ===== Glue Job: users =====
+
+        users_glue_job = glue.PySparkEtlJob(
+            self, 
+            "UsersETLJob",
+            job_name="users-etl",
+            glue_version=glue.GlueVersion.V5_1,
+            role=glue_role, #type: ignore
+            script=glue.Code.from_bucket(buck, 'etl-scripts/users-etl.py'),
+            number_of_workers=2, 
+            worker_type=glue.WorkerType.G_1X,
+            max_concurrent_runs=1,
+            timeout=Duration.minutes(30),
+        )
+
+
 
