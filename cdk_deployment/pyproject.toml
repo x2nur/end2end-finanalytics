@@ -13,3 +13,18 @@ dependencies = [
 dev = [
     "pytest==8.4.2",
 ]
+
+[tool.basedpyright]
+venvPath = "."
+venv = ".venv"
+
+reportExplicitAny = false
+reportAny = false
+reportMissingTypeStubs = false
+
+[tool.ty.environment]
+python = ".venv"
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
