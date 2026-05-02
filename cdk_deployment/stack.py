@@ -149,3 +149,19 @@ class FinanalyticsStack(Stack):
             max_concurrent_runs=1,
             timeout=Duration.minutes(30),
         )
+
+
+        # ===== Glue Job: mcc-codes =====
+
+        mcc_codes_glue_job = glue.PySparkEtlJob(
+            self, 
+            "MccCodesETLJob",
+            job_name="mcc-codes-etl",
+            glue_version=glue.GlueVersion.V5_1,
+            role=glue_role, #type: ignore
+            script=glue.Code.from_bucket(buck, 'etl-scripts/mcc_codes-etl.py'),
+            number_of_workers=2, 
+            worker_type=glue.WorkerType.G_1X,
+            max_concurrent_runs=1,
+            timeout=Duration.minutes(30),
+        )
