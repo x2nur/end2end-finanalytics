@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "aws-cdk-aws-glue-alpha>=2.252.0a0",
     "aws-cdk-lib>=2.248.0,<3.0.0",
     "constructs>=10.5.0,<11.0.0",
 ]
