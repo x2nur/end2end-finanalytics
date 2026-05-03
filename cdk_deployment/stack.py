@@ -7,7 +7,9 @@ from aws_cdk import (
     aws_ecr_assets, 
     aws_s3,
     aws_s3_deployment,
-    aws_iam
+    aws_iam,
+    aws_secretsmanager,
+    aws_redshiftserverless as redshift, SecretValue,
 )
 import aws_cdk.aws_glue_alpha as glue
 from aws_cdk.aws_s3_deployment import Source
@@ -165,3 +167,34 @@ class FinanalyticsStack(Stack):
             max_concurrent_runs=1,
             timeout=Duration.minutes(30),
         )
+
+
+        # ===== Redshift Serverless Namespace =====
+
+        redshift_admin_secret = aws_secretsmanager.Secret(
+            self, "RedshiftAdminSecret",
+            secret_name="finanalytics-admin-password",
+        )
+        
+        redshift_role = aws_iam.Role(
+            self, "RedshiftRole",
+            assumed_by=aws_iam.ServicePrincipal("redshift-serverless.amazonaws.com"), #type:ignore
+        )
+
+        # TODO: check output cf template for a secret value 
+        # TODO: grant read from the s3 bucket 
+        redshift_namespace = redshift.CfnNamespace(
+            self, "FinanalyticsRedshiftNamespace",
+            namespace_name="finanalytics",
+            admin_username="admin",
+            admin_user_password=redshift_admin_secret.secret_value.unsafe_unwrap(),
+            db_name='finanalytics',
+            iam_roles=[ redshift_role ]
+        )
+
+        # for copy 
+        buck.grant_read(redshift_role)
+
+        
+
+
