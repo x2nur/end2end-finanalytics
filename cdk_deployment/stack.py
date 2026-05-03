@@ -8,12 +8,14 @@ from aws_cdk import (
     aws_s3,
     aws_s3_deployment,
     aws_iam,
+    aws_ec2 as aws_ec2,
     aws_secretsmanager,
-    aws_redshiftserverless as redshift, SecretValue,
+    aws_redshiftserverless as redshift
 )
 import aws_cdk.aws_glue_alpha as glue
 from aws_cdk.aws_s3_deployment import Source
 from constructs import Construct
+
 
 
 class FinanalyticsStack(Stack):
@@ -182,7 +184,6 @@ class FinanalyticsStack(Stack):
         )
 
         # TODO: check output cf template for a secret value 
-        # TODO: grant read from the s3 bucket 
         redshift_namespace = redshift.CfnNamespace(
             self, "FinanalyticsRedshiftNamespace",
             namespace_name="finanalytics",
@@ -196,5 +197,23 @@ class FinanalyticsStack(Stack):
         buck.grant_read(redshift_role)
 
         
+        # ===== Security Group for Redshift Workgroup =====
+        redshift_sg = aws_ec2.SecurityGroup(
+            self, "RedshiftSecurityGroup",
+            description="Security group for Redshift Serverless finanalytics workgroup",
+            vpc=aws_ec2.Vpc.from_lookup(self, "VPC", is_default=True),
+            allow_all_outbound=True,
+        )
+        # redshift_sg.add_ingress_rule(aws_ec2.Peer.any_ipv4(), aws_ec2.Port.tcp(5439))  
 
-
+        # ===== Redshift Serverless Workgroup =====
+        redshift_workgroup = redshift.CfnWorkgroup(
+            self, "FinanalyticsRedshiftWorkgroup",
+            workgroup_name="finanalytics",
+            namespace_name='finanalytics',
+            base_capacity=4,
+            max_capacity=8,
+            publicly_accessible=False,
+            security_group_ids=[redshift_sg.security_group_id],
+        )
+        redshift_workgroup.add_dependency(redshift_namespace)
