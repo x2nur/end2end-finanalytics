@@ -217,3 +217,5 @@ class FinanalyticsStack(Stack):
             security_group_ids=[redshift_sg.security_group_id],
         )
         redshift_workgroup.add_dependency(redshift_namespace)
+        
+        # TODO: add mwaa service resources 
